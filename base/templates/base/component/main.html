@@ -1,0 +1,15 @@
+<main>
+    <h1>NoteBooks</h1>
+    <a href="{% url 'book-create' %}">Create Book</a>
+    <a href="{% url 'article-create' %}">Create Article</a>
+    {% for book in books %}
+    <section>
+        <a href="{% url 'book-view' book.id %}">
+            <h2>{{book.title}}</h2>
+        </a>
+        <p>{{book.created}}</p>
+        <p>@{{book.author.username}}</p>
+        <p>{{book.description}}</p>
+    </section>
+    {% endfor %}
+</main>

@@ -1,9 +1,7 @@
-from typing import overload
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
 from .models import Article, Book, FormTesterModel, Section, Topic, Tag
 from django.db.models.query import Q
 
@@ -40,9 +38,7 @@ class BookUtil:
 
                         if self.validated(book, _article, _attr):
                             _article.save()
-                            # print(f"{_obj} {_id} {_attr} --> {value}")
                         else:
-                            # print(f"Deleting {_article}...")
                             _article.delete()
 
                 elif _obj.lower() == 'section':
@@ -53,30 +49,10 @@ class BookUtil:
 
                         if self.validated(book, _section, _attr):
                             _section.save()
-                            # print(f"{_obj} {_id} {_attr} --> {value}")
                         else:
-                            # print(f"Deleting {_section}...")
                             _section.delete()
 
-    # @staticmethod
-    # def remove_duplicates(li: Article):
-    #     ######print(f"Deleting {li}")
-    #     li.delete()
-
-    # @staticmethod
-    # @overload
-    # def remove_duplicates(li: list):
-    #     for l in li:
-    #         ######print(f"Deleting {l}")
-    #         l.delete()
-
-    # @staticmethod
-    # def remove_duplicates(li: Section):
-    #     ######print(f"Deleting {li}")
-    #     li.delete()
-
     @staticmethod
-    @overload
     def validated(book, fm: Article, attr) -> bool:
         # print(f"Validating {book}.{fm}...\n")
         _all_articles = Article.objects.all()
@@ -154,10 +130,7 @@ class BookUtil:
         return int(_new_book.id)
 
 
-def authenticate_user(request):
-    pass
-
-
+# [+] HOME [+]
 def home(request):
     q = request.GET.get('q')
     q = q if q is not None else ''
@@ -166,23 +139,16 @@ def home(request):
     _topics = Topic.objects.all()
     context = {'books': _books, 'topics': _topics}
     return render(request, 'base/home.html', context)
+# [-] HOME [-]
 
 
-def data_reset(request):
-    __all_sections = Section.objects.all()
-    for _section in __all_sections:
-        _section.delete()
-    __all_sections = Article.objects.all()
-    for _section in __all_sections:
-        _section.delete()
-    __all_sections = Book.objects.all()
-    for _section in __all_sections:
-        _section.delete()
-    return redirect('home')
+# [+] AUTH [+]
+def authenticate_user(request):
+    return redirect('login')
 
 
+# login
 def login_page(request):
-    page = 'login'
     if request.method == "POST":
         form_data = request.POST
         _username = form_data.get('username')
@@ -203,84 +169,162 @@ def login_page(request):
 
         return redirect('home')
 
-    context = {'page': page}
-    return render(request, 'base/login.html', context)
+    return render(request, 'base/auth/login.html')
 
 
+# sign in
+def sign_in_page(request):
+    return render(request, 'base/auth/sign-in.html')
+
+
+# logout
 def logout_page(request):
-    if request.method == 'POST':
+    if request.method == 'get':
         logout(request)
         return redirect('home')
-    context = {}
-    return render(request, 'base/logout.html', context)
+    return render(request, 'base/auth/logout.html')
+# [-] AUTH [-]
 
 
-def book_create(request):
-    if request.method == 'POST':
-        _form = request.POST.dict()
-        _id = BookUtil()._set_attr(_form)
-        return redirect('book-edit', pk=_id)
-    _topics = Topic.objects.all()
-    _tags = Tag.objects.all()
-    context = {'tags': _tags, 'topics': _topics}
-    return render(request, 'base/book-create.html', context)
-
-
+# [+] BOOK [+]
+# view
 def book_view(request, pk):
-    _book = Book.objects.get(id=pk)
-    _articles = _book.article_set.all()
-    print(f"count: {_articles.count()}")
-    _article_count = _articles.count()
-    _sections = Section.objects.all()
-    context = {'article_count': _article_count, 'book': _book, 'sections': _sections,
-               'articles': _articles, 'edit': False}
-    return render(request, 'base/articles.html', context)
+    return render(request, 'base/book/view.html')
 
 
+# create
+def book_create(request):
+    return render(request, 'base/book/create.html')
+
+
+# edit
 def book_edit(request, pk):
-    _book = Book.objects.get(id=pk)
-    _articles = _book.article_set.all()
-    _sections = Section.objects.all()
-    if request.method == 'POST':
-        submit_method = request.POST.get('submit_method')
-        if submit_method == 'Add':
-            _new_article = Article.objects.create(
-                title=request.POST.get('article-title'),
-                book=_book
-            )
-            _form_out_test = FormTesterModel.objects.create()
-            _form_out_test.body = f"{request.POST}\n{request.POST.get('form2')}\n{request}"
-            _form_out_test.save()
-            _new_article.save()
-            return redirect('section-create', pk=_new_article.id)
-
-        BookUtil().book_save(_book, request.POST.dict())
-        BookUtil().remove_duplicates()
-
-    _article_count = _articles.count()
-    context = {'article_count': _article_count, 'book': _book, 'articles': _articles,
-               'sections': _sections, 'edit': True}
-    return render(request, 'base/book-edit.html', context)
+    return render(request, 'base/book/edit.html')
+# [-] BOOK [-]
 
 
-def section_create(request, pk):
-    _article = Article.objects.get(id=pk)
-
-    if request.method == 'POST':
-        Section.objects.create(
-            article=_article,
-            title=request.POST.get('section-title'),
-            body=request.POST.get('section-body')
-        ).save()
-        return redirect('book-edit', pk=_article.book.id)
-
-    context = {'article': _article}
-    return render(request, 'base/section-create.html', context)
+# [+] ARTICLE [+]
+# view
+def article_view(request, pk):
+    return render(request, 'base/article/view.html')
 
 
-# def section_edit(request, pk):
+# create
+def article_create(request):
+    return render(request, 'base/article/create.html')
 
 
-def write_book(request):
-    context = {}
-    return render(request, 'base/content-write.html')
+# edit
+def article_edit(request, pk):
+    return render(request, 'base/article/edit.html')
+# [-] ARTICLE [-]
+
+
+# [+] SECTION [+]
+# view
+def section_view(request, pk):
+    return render(request, 'base/section/view.html')
+
+
+# create
+def section_create(request):
+    return render(request, 'base/section/create.html')
+
+
+# edit
+def section_edit(request, pk):
+    return render(request, 'base/section/edit.html')
+# [-] BOOK [-]
+
+
+# [!] RESET DATA [!]
+def data_reset(request):
+    __all_sections = Section.objects.all()
+    for _section in __all_sections:
+        _section.delete()
+    __all_sections = Article.objects.all()
+    for _section in __all_sections:
+        _section.delete()
+    __all_sections = Book.objects.all()
+    for _section in __all_sections:
+        _section.delete()
+    return redirect('home')
+
+
+# def logout_page(request):
+#     if request.method == 'POST':
+#         logout(request)
+#         return redirect('home')
+#     context = {}
+#     return render(request, 'base/logout.html', context)
+
+
+# def book_create(request):
+#     if request.method == 'POST':
+#         _form = request.POST.dict()
+#         _id = BookUtil()._set_attr(_form)
+#         return redirect('book-edit', pk=_id)
+#     _topics = Topic.objects.all()
+#     _tags = Tag.objects.all()
+#     context = {'tags': _tags, 'topics': _topics}
+#     return render(request, 'base/book-create.html', context)
+
+
+# def book_view(request, pk):
+#     _book = Book.objects.get(id=pk)
+#     _articles = _book.article_set.all()
+#     print(f"count: {_articles.count()}")
+#     _article_count = _articles.count()
+#     _sections = Section.objects.all()
+#     context = {'article_count': _article_count, 'book': _book, 'sections': _sections,
+#                'articles': _articles, 'edit': False}
+#     return render(request, 'base/articles.html', context)
+
+
+# def book_edit(request, pk):
+#     _book = Book.objects.get(id=pk)
+#     _articles = _book.article_set.all()
+#     _sections = Section.objects.all()
+#     if request.method == 'POST':
+#         submit_method = request.POST.get('submit_method')
+#         if submit_method == 'Add':
+#             _new_article = Article.objects.create(
+#                 title=request.POST.get('article-title'),
+#                 book=_book
+#             )
+#             _form_out_test = FormTesterModel.objects.create()
+#             _form_out_test.body = f"{request.POST}\n{request.POST.get('form2')}\n{request}"
+#             _form_out_test.save()
+#             _new_article.save()
+#             return redirect('section-create', pk=_new_article.id)
+
+#         BookUtil().book_save(_book, request.POST.dict())
+#         BookUtil().remove_duplicates()
+
+#     _article_count = _articles.count()
+#     context = {'article_count': _article_count, 'book': _book, 'articles': _articles,
+#                'sections': _sections, 'edit': True}
+#     return render(request, 'base/book-edit.html', context)
+
+
+# def section_create(request, pk):
+#     _article = Article.objects.get(id=pk)
+
+#     if request.method == 'POST':
+#         Section.objects.create(
+#             article=_article,
+#             title=request.POST.get('section-title'),
+#             body=request.POST.get('section-body')
+#         ).save()
+#         return redirect('book-edit', pk=_article.book.id)
+
+#     context = {'article': _article}
+#     return render(request, 'base/section-create.html', context)
+
+
+# # def section_edit(request, pk):
+
+
+# def write_book(request):
+#     context = {}
+#     return render(request, 'base/content-write.html')
