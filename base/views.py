@@ -141,38 +141,54 @@ def _test_func(keys: list):
 def home(request):
 
     _form = request.GET.dict()
+    _topics_all = True if request.GET.get(
+        'filter.topics.all') is not None else False
+    _types_all = True if request.GET.get(
+        'filter.types.all') is not None else False
     show_books = True if request.GET.get('books') is not None else False
+    print(request.GET)
     show_articles = True if request.GET.get('articles') is not None else False
     show_sections = True if request.GET.get('sections') is not None else False
 
+    if _types_all:
+        show_articles = True
+        show_books = True
+        show_sections = True
     if not show_articles and not show_sections:
         show_books = True
 
-    _articles = []
-    _sections = []
-    _books = []
-    _has_no_topic = True
-    for key, value in _form.items():
-        keys = key.split('.')
-        if len(keys) == 2:
-            _book = Book.objects.filter(
-                topics__name__icontains=keys[1]).distinct()
-            for b in _book:
-                _books.append(b)
-            _article = Article.objects.filter(
-                topics__name__icontains=keys[1]).distinct()
-            for a in _article:
-                _section = Section.objects.filter(article=a).distinct()
-                for s in _section:
-                    _sections.append(s)
-                _articles.append(a)
-            _has_no_topic = False
-
-    if _has_no_topic:
+    if _topics_all:
         _books = Book.objects.all()
         _articles = Article.objects.all()
-    _topics = Topic.objects.all()
+        _sections = Section.objects.all()
+        print("sections: ", _sections)
+    elif not _topics_all:
+        _articles = []
+        _sections = []
+        _books = []
+        _has_no_topic = True
+        for key, value in _form.items():
+            keys = key.split('.')
+            if len(keys) == 2:
+                _book = Book.objects.filter(
+                    topics__name__icontains=keys[1]).distinct()
+                for b in _book:
+                    _books.append(b)
+                _article = Article.objects.filter(
+                    topics__name__icontains=keys[1]).distinct()
+                for a in _article:
+                    _section = Section.objects.filter(article=a).distinct()
+                    for s in _section:
+                        _sections.append(s)
+                    _articles.append(a)
+                _has_no_topic = False
 
+        if _has_no_topic:
+            _books = Book.objects.all()
+            _articles = Article.objects.all()
+    _topics = Topic.objects.all()
+    print("has_articles", _articles, show_articles)
+    print("has sections", _sections, show_sections)
     context = {
         'sections': _sections,
         'articles': _articles,
