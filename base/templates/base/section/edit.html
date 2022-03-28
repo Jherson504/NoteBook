@@ -1,0 +1,14 @@
+{% extends 'base/main.html' %}
+{% block content %}
+
+<section>
+    <header>
+        <p><input type="text" value="{{section.title}}" name="section.{{section.id}}.title"></p>
+    </header>
+    <main>
+        <p><textarea name="section.{{section.id}}.body" cols="30" rows="10">{{section.body}}</textarea></p>
+    </main>
+    <footer></footer>
+</section>
+
+{% endblock content %}

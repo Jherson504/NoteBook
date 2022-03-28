@@ -1,5 +1,5 @@
-<aside>
+<aside id="navbar" z="1">
   <a href="{% url 'home' %}">Home</a>
 
-  <a href="{% url 'auth' %}">Login</a>
+  <a href="{% url 'auth' %}">{% if request.user.is_authenticated %}Logout{% else %}Login{% endif %}</a>
 </aside>

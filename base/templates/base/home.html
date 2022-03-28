@@ -1,9 +1,13 @@
-{% extends 'main.html' %} {% block content %}
+{% extends 'main.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'styles/styles.css' %}">
 
-<div class="home-container">
-  {% include 'base/component/topics.html' %}
+<div class="home-container" z="1">
+  {% include 'base/component/navigate.html' %}
   {% include 'base/component/main.html' %}
   {% include 'base/component/activities.html' %}
 </div>
+
 
 {% endblock content %}

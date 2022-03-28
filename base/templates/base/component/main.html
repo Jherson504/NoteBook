@@ -1,15 +1,48 @@
-<main>
-    <h1>NoteBooks</h1>
-    <a href="{% url 'book-create' %}">Create Book</a>
-    <a href="{% url 'article-create' %}">Create Article</a>
-    {% for book in books %}
-    <section>
-        <a href="{% url 'book-view' book.id %}">
-            <h2>{{book.title}}</h2>
-        </a>
-        <p>{{book.created}}</p>
-        <p>@{{book.author.username}}</p>
-        <p>{{book.description}}</p>
+<main class="container">
+    <header>
+        <h1>NoteBooks</h1>
+        <a href="{% url 'book-create' %}">Create Book</a>
+        <a href="{% url 'article-create' %}">Create Article</a>
+    </header>
+    <!-- Filter Show Books-->
+
+    {% if show_books %}
+
+    <section class="container books-container">
+        {% for book in books %}
+        <div class="container book--sample">
+            <a href="{% url 'book-view' book.id %}">
+                <h2>{{book.title}}</h2>
+            </a>
+            <p>{{book.created}}</p>
+            <p>@{{book.author.username}}</p>
+            <p>{{book.description}}</p>
+        </div>
+        {% endfor %}
     </section>
-    {% endfor %}
+    {% endif %}
+
+    <!-- Filter Show Articles-->
+    {% if show_articles %}
+    <h3>Articles</h3>
+    <section class="container articles-container">
+        <ul>
+            {% for section in sections %}
+            <li>
+                {% include 'base/article/main.html' %}
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+    <!-- Filter Show Sections-->
+
+    {% if show_sections %}
+    <section class="container sections-container">
+        {% for book in books %}
+        {% include 'base/section/main.html' %}
+        {% endfor %}
+    </section>
+    {% endif %}
+
 </main>

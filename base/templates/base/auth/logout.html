@@ -1,0 +1,13 @@
+{% extends 'main.html' %}
+{% block content %}
+
+<main>
+    <h1>Logout</h1>
+    <p>Are you sure you want to logout {{request.user.username}}?</p>
+    <form action="">
+        <input name="answer" type="submit" value="no">
+        <input name="answer" type="submit" value="yes">
+    </form>
+</main>
+
+{% endblock content %}

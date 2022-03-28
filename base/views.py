@@ -5,6 +5,8 @@ from django.contrib.auth import authenticate, login, logout
 from .models import Article, Book, FormTesterModel, Section, Topic, Tag
 from django.db.models.query import Q
 
+# reminder: study css media query
+
 
 class BookUtil:
     def __init__(self):
@@ -130,20 +132,65 @@ class BookUtil:
         return int(_new_book.id)
 
 
-# [+] HOME [+]
-def home(request):
-    q = request.GET.get('q')
-    q = q if q is not None else ''
+def _test_func(keys: list):
+    print(f"123{keys[1]}")
 
-    _books = Book.objects.filter(topics__name__icontains=q).distinct()
+# [+] HOME [+]
+
+
+def home(request):
+
+    _form = request.GET.dict()
+    show_books = True if request.GET.get('books') is not None else False
+    show_articles = True if request.GET.get('articles') is not None else False
+    show_sections = True if request.GET.get('sections') is not None else False
+
+    if not show_articles and not show_sections:
+        show_books = True
+
+    _articles = []
+    _sections = []
+    _books = []
+    _has_no_topic = True
+    for key, value in _form.items():
+        keys = key.split('.')
+        if len(keys) == 2:
+            _book = Book.objects.filter(
+                topics__name__icontains=keys[1]).distinct()
+            for b in _book:
+                _books.append(b)
+            _article = Article.objects.filter(
+                topics__name__icontains=keys[1]).distinct()
+            for a in _article:
+                _section = Section.objects.filter(article=a).distinct()
+                for s in _section:
+                    _sections.append(s)
+                _articles.append(a)
+            _has_no_topic = False
+
+    if _has_no_topic:
+        _books = Book.objects.all()
+        _articles = Article.objects.all()
     _topics = Topic.objects.all()
-    context = {'books': _books, 'topics': _topics}
+
+    context = {
+        'sections': _sections,
+        'articles': _articles,
+        'books': _books,
+        'topics': _topics,
+        'show_sections': show_sections,
+        'show_articles': show_articles,
+        'show_books': show_books,
+
+    }
     return render(request, 'base/home.html', context)
 # [-] HOME [-]
 
 
 # [+] AUTH [+]
 def authenticate_user(request):
+    if request.user.is_authenticated:
+        return redirect('logout')
     return redirect('login')
 
 
@@ -179,9 +226,13 @@ def sign_in_page(request):
 
 # logout
 def logout_page(request):
-    if request.method == 'get':
-        logout(request)
-        return redirect('home')
+    if request.method == 'GET':
+        answer = request.GET.get('answer')
+        print(f"answer: {answer}")
+        if answer:
+            if answer.lower() == 'yes':
+                logout(request)
+            return redirect('home')
     return render(request, 'base/auth/logout.html')
 # [-] AUTH [-]
 

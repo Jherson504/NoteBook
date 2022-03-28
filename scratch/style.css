@@ -1,0 +1,9 @@
+.home-container {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 3fr 1fr;
+}
+.container {
+  padding: 0.5rem;
+  line-height: 1.5rem;
+}

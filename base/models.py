@@ -53,6 +53,7 @@ class Article(models.Model):
 
     book = models.ForeignKey(Book, null=True, on_delete=models.CASCADE)
     title = models.CharField(max_length=200, null=True, blank=True)
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     topics = models.ManyToManyField(
         Topic, related_name="article_topics")
     tags = models.ManyToManyField(Tag, related_name="article_tags")
